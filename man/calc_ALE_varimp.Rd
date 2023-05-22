@@ -4,14 +4,14 @@
 \alias{calc_ALE_varimp}
 \title{calc_ALE_varimp}
 \usage{
-calc_ALE_varimp(X, X.MODEL, K = 40)
+calc_ALE_varimp(X, MODEL, K = 40, pred.fun)
 }
 \arguments{
 \item{X}{the data used to train the model, without predicted var}
 
-\item{K}{the number of bins split to evaluate the ALE Plot see ALEPLOT package}
+\item{MODEL}{the model}
 
-\item{X, MODEL}{the model}
+\item{K}{the number of bins split to evaluate the ALE Plot see ALEPLOT package}
 
 \item{pred.fun}{the prediction function required by ALEPLOT package see details}
 }

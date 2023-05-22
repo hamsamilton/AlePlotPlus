@@ -6,6 +6,8 @@
 #' @import pheatmap
 #' @import randomForest
 #' @import ALEPlot
+#' @import ggplot2
+
 #' @export
 dplyr::`%>%`
 
@@ -269,7 +271,7 @@ create_adjacency_matrix <- function(Xvec,Yvec,vals) {
 interacts2_heatmap = function(ALE_interacts){
 
   ALE_interacts = ALE_interacts %>% group_by(x,y) %>%
-  dplyr::summarize(mn = median(abs(val)))
+  dplyr::summarize(mn = mean(abs(val)))
 ALE_adj = create_adjacency_matrix(Xvec = ALE_interacts$x,
                                  Yvec = ALE_interacts$y,
                                  vals = ALE_interacts$mn)
@@ -320,7 +322,7 @@ mkALEplots <- function(X,X.MODEL,K = 40,pred.fun){
     ALE_OUT <- ggplot(ALEDF,aes(x = x.values,y = f.values)) +
       geom_line(size = 1.3) +
       geom_point(data = est_effect_df,aes(x = x,y = val),color = "red",shape = 4) +
-      labs(x = nm,y = "effect on prediction") + facet.themes
+      labs(x = nm,y = "effect on prediction") + facet.themes()
     return(ALE_OUT)})
   return(ALEPLOTS)
 }
@@ -362,18 +364,15 @@ calc_vals_1D = function(x_points,x_vec,z_vec){
 #'and the ALEPlot info, calculate the est effect for each point for the
 #'input dataset
 #'@param X the data used to train the model, without predicted var
-#'@param X,MODEL the model
+#'@param MODEL the model
 #'@param pred.fun the prediction function required by ALEPLOT package see details
 #'@param K the number of bins split to evaluate the ALE Plot see ALEPLOT package
 #'@return a vector of estimated effect intensities for each point
 #'@export
-calc_ALE_varimp = function(X,X.MODEL,K = 40){
-
-  # Helper function ALEPlots requires
-  pred.fun <- function(X.model, newdata){predict(X.model, newdata)}
+calc_ALE_varimp = function(X,MODEL,K = 40,pred.fun){
 
   imp_scores <- lapply(colnames(X),function(nm){
-    ALEDF <- ALEPlot(X, X.MODEL, pred.fun, nm, K = K, NA.plot = TRUE)
+    ALEDF <- ALEPlot(X, MODEL, pred.fun, nm, K = K, NA.plot = TRUE)
     ALEDF <- as.data.frame(ALEDF)
 
     imp_score = calc_vals_1D(x_points=X[,nm],
@@ -386,9 +385,37 @@ calc_ALE_varimp = function(X,X.MODEL,K = 40){
   return(imp_score_df)
   }
 
+#' a theeme for faceted plots which does not include a legend for nice tiling.
+#' @export
+facet.themes <- function() {ggplot2::theme_classic() +  ggplot2::theme(axis.title = element_text(size = 20,color = "black"),
+                                         axis.text = element_text(size = 20,color = "black"),
+                                         legend.position = "none")}
 
 
 
+#'str_safe
+#'
+#'This function replaces special symbols with close approximations that dont mess up file systems
+#'@param strng string to make safe
+#'@return a string with the dangerous parts replaced but still looks very similar to a human reader
+#'@export
+str_safe = function(strng){
+  strng = str_replace_all(strng,"%","％")
+  strng = str_replace_all(strng,"/","∕")
+  return(strng)
+}
 
 
+#'QckRBrwrPllt
+#'
+#'This is a quick function that combines two RColorBrewer functions into one that
+#'makes it more intuitive to use and setup
+#'@param name the Rbrewer pallette name
+#'@param n how many colors you want
+#'@return a color vector
+#'@export
+QckRBrwrPllt <- function(name,n) {
+  plt <- colorRampPalette(RColorBrewer::brewer.pal(8,name))(n)
+  return(plt)
+}
 
