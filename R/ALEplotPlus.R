@@ -1,12 +1,11 @@
-# to install setwd("/Users/samhamilton/Library/Mobile Documents/com~apple~CloudDocs/Thesis_Aim1/scripts/ALEPlotPlus")
+# to install setwd("/Users/samhamilton/Library/Mobile Documents/com~apple~CloudDocs/Thesis_Aim1/libraries/ALEPlotPlus")
 # devtools::document() ; devtools::build() ; devtools::install()
 
-#' @import ggplot2
-#' @import dplyr
+#' @import tidyverse
 #' @import pheatmap
 #' @import randomForest
 #' @import ALEPlot
-#' @import ggplot2
+#' @import RColorBrewer
 
 #' @export
 dplyr::`%>%`
@@ -76,7 +75,6 @@ find_ALE_interact = function(X,model,pred_fun,int_vars,K = 40){
                    z_vec    = z_mat)
 
   return(int_estimate)
-
 }
 
 
@@ -250,7 +248,7 @@ create_adjacency_matrix <- function(Xvec,Yvec,vals) {
   for (i in 1:nrow(data)) {
     row_name <- data$X[i]
     col_name <- data$Y[i]
-    val <- data$vals[i]
+    val      <- data$vals[i]
 
     adj_matrix[row_name, col_name] <- val
   }
