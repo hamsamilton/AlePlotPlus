@@ -310,13 +310,13 @@ interacts2_histogram <- function(ALE_interacts,bins = 1000,
 #' @export
 mkALEplots <- function(X,X.MODEL,K = 40,pred.fun){
 
-  ORDEREDNAMES <- colnames(X)  # get the variable importance to order the ALEPlots
   ALEPLOTS <- lapply(colnames(X),function(nm){
     ALEDF <- ALEPlot(X, X.MODEL, pred.fun, nm, K = K, NA.plot = TRUE) %>%
       as.data.frame()
 
-    est_effect = calc_vals_1D(X[,nm],ALEDF$x.values,ALEDF$f.values)
-    est_effect_df = data.frame(x = X[,nm],val = est_effect)
+    est_effect_df = calc_vals_1D(X[,nm],ALEDF$x.values,ALEDF$f.values) %>%
+      data.frame(x = X[,nm],val = .)
+
     ALE_OUT <- ggplot(ALEDF,aes(x = x.values,y = f.values)) +
       geom_line(size = 1.3) +
       geom_point(data = est_effect_df,aes(x = x,y = val),color = "red",shape = 4) +
@@ -358,36 +358,63 @@ calc_vals_1D = function(x_points,x_vec,z_vec){
 
 #'calc_ALE_varimp
 #'
-#'given the X coordinates of the two predictors used to generate an ALEPlot
-#'and the ALEPlot info, calculate the est effect for each point for the
-#'input dataset
+#'An internal helper function designed to assist in calculating variable importance scores
+#'using the ALEPlot method.
+#'The method works as such. Use the ALE method to estimate the effect on prediction
+#'for each datapoint. Other functions summarize this data matrix in various ways
+#'to produce variable importance scores of different flavors
 #'@param X the data used to train the model, without predicted var
-#'@param MODEL the model
+#'@param X.MODEL the model
 #'@param pred.fun the prediction function required by ALEPLOT package see details
 #'@param K the number of bins split to evaluate the ALE Plot see ALEPLOT package
-#'@return a vector of estimated effect intensities for each point
+#'@return a matrix of estimated effects for each point, for each predictor
 #'@export
-calc_ALE_varimp = function(X,MODEL,K = 40,pred.fun){
+calc_ALE_varimp_df = function(X,X.MODEL,K = 40,pred.fun){
 
   imp_scores <- lapply(colnames(X),function(nm){
-    ALEDF <- ALEPlot(X, MODEL, pred.fun, nm, K = K, NA.plot = TRUE)
+    ALEDF <- ALEPlot(X, X.MODEL, pred.fun, nm, K = K, NA.plot = TRUE)
     ALEDF <- as.data.frame(ALEDF)
 
     imp_score = calc_vals_1D(x_points=X[,nm],
                              x_vec = ALEDF$x.values,z_vec= ALEDF$f.values) %>%
-      abs() %>%
-      mean()
     return(imp_score)
   })
-  imp_score_df = data.frame(var = colnames(X),varimp = unlist(imp_scores))
-  return(imp_score_df)
-  }
+  imp_score_mat = do.call(cbind,imp_scores)
+  dimnames(imp_score_mat) <- list(rownames(X),colnames(X))
 
-#' a theeme for faceted plots which does not include a legend for nice tiling.
+  return(imp_score_mat)
+}
+
+
+#'calc_ALE_varimps_mean
+#'
+#' Generates variable importance scores for 1D ALEPlots.
+#'@param X the data used to train the model, without predicted var
+#'@param X.MODEL the model
+#'@param pred.fun the prediction function required by ALEPLOT package see details
+#'@param K the number of bins split to evaluate the ALE Plot see ALEPLOT package
+calc_ALE_varimps_mean <- function(X,X.MODEL,pred.fun,K){
+
+  imp_score_mat <- calc_ALE_varimp_df(X,X.MODEL,K = 40,pred.fun)
+
+  imp_score_avg = imp_score_mat %>% abs() %>% colMeans() %>% as.vector()
+
+  names(imp_score_avg) = colnames(X)
+
+  return(imp_score_avg)
+}
+
+
+
+#' a theme for faceted plots which does not include a legend for nice tiling.
 #' @export
 facet.themes <- function() {ggplot2::theme_classic() +  ggplot2::theme(axis.title = element_text(size = 20,color = "black"),
                                          axis.text = element_text(size = 20,color = "black"),
                                          legend.position = "none")}
+
+
+
+
 
 
 
