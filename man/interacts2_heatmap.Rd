@@ -2,14 +2,17 @@
 % Please edit documentation in R/ALEplotPlus.R
 \name{interacts2_heatmap}
 \alias{interacts2_heatmap}
-\title{rf_interacts2_heatmap}
+\title{interacts2_heatmap}
 \usage{
 interacts2_heatmap(ALE_interacts)
+}
+\arguments{
+\item{ALE_interacts}{the output of  findALEinteracts}
 }
 \value{
 a matrix compatible with pheatmap
 }
 \description{
 summarizes the information from the findALEinteractions
-function into a format compatable with pheatmap
+function into a format compatible with pheatmap
 }

@@ -2,10 +2,10 @@
 % Please edit documentation in R/ALEplotPlus.R
 \name{facet.themes}
 \alias{facet.themes}
-\title{a theeme for faceted plots which does not include a legend for nice tiling.}
+\title{a theme for faceted plots which does not include a legend for nice tiling.}
 \usage{
 facet.themes()
 }
 \description{
-a theeme for faceted plots which does not include a legend for nice tiling.
+a theme for faceted plots which does not include a legend for nice tiling.
 }

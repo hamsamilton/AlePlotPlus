@@ -4,14 +4,14 @@
 \alias{find_ALE_interacts}
 \title{find_ALE_interacts}
 \usage{
-find_ALE_interacts(X, model, pred_fun, K = 40)
+find_ALE_interacts(X, X.MODEL, pred.fun, K = 40)
 }
 \arguments{
 \item{X}{the dataframe of predictors used to train model}
 
-\item{model}{the machine learning model use}
+\item{X.MODEL}{the machine learning model use}
 
-\item{pred_fun}{the prediction function used with ALEPlot, see ALEPlot for details}
+\item{pred.fun}{the prediction function used with ALEPlot, see ALEPlot for details}
 
 \item{K}{the number of bins in which to assess interactions, see ALEPlot for detaal}
 }

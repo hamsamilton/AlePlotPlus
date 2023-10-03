@@ -7,11 +7,11 @@
 interacts2_histogram(ALE_interacts, bins = 1000, ncol = 1)
 }
 \arguments{
+\item{ALE_interacts}{output of findALEinteractions}
+
 \item{bins}{the number of histogram bins}
 
 \item{ncol}{how many columns in the facetplot}
-
-\item{the}{output of findALEinteractions}
 }
 \description{
 summarizes the information from the findALEinteractions

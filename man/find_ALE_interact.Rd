@@ -4,18 +4,18 @@
 \alias{find_ALE_interact}
 \title{find_ALE_interact}
 \usage{
-find_ALE_interact(X, model, pred_fun, int_vars, K = 40)
+find_ALE_interact(X, X.MODEL, pred.fun, int_vars, K = 40)
 }
 \arguments{
 \item{X}{the dataframe of predictors used to train model}
 
-\item{model}{the machine learning model use}
-
-\item{pred_fun}{the prediction function used with ALEPlot, see ALEPlot for details}
+\item{pred.fun}{the prediction function used with ALEPlot, see ALEPlot for details}
 
 \item{int_vars}{a list of the names of the two interacting variables of interest}
 
 \item{K}{the number of bins in which to assess interactions, see ALEPlot for detail}
+
+\item{model}{the machine learning model use}
 }
 \value{
 a value representing the average estimated effect size of an interaction
