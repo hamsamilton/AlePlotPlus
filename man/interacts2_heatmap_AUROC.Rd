@@ -20,6 +20,6 @@ a matrix compatible with pheatmap
 summarizes the information from the findALEinteractions
 function into a format compatible with pheatmap.
 A variant that measures importance as the difference in AUC when adjusted
-for the ALEPlot interaction estimates
+for the ALEPlot interaction estimates. THIS FUNCTION IS IN BETA, may or may not work
 between
 }

@@ -106,6 +106,57 @@ calc_vals = function(x_points,y_points,x_vec,y_vec,z_vec){
   return(z_values)
 }
 
+# Format a number to three significant figures
+format_sigfig <- function(x) {
+  if (x == 0) {
+    return("0")
+  }
+  exponent = floor(log10(abs(x)))
+  if (exponent >= 0 && exponent < 3) {
+    return(sprintf("%.2f", x))
+  }
+  formatted = sprintf("%.2e", x)
+  gsub("0*e\\+00$", "", formatted)  # Remove trailing zeros and +00 in the exponent if present
+}
+
+#' color.bar
+#'
+#' Plot a Color Bar
+#'
+#' This function plots a color bar with a given color scale and axis labels.
+#'
+#' @param lut A color palette (a vector of color values) used to create the color bar.
+#' @param min The minimum value of the scale, placed at the bottom of the color bar.
+#' @param max The maximum value of the scale, placed at the top of the color bar (default is -min).
+#' @param nticks The number of tick marks on the color bar (default is 4).
+#' @param ticks A numeric vector of positions for tick marks on the color bar (default is `seq(min, max, len = nticks)`).
+#' @param title A title for the color bar (default is an empty string).
+#'
+#' @return Invisible NULL. The function is called for its side effect: producing a plot.
+#'
+#' @examples
+#' color.bar(colorRampPalette(c("light green", "yellow", "orange", "red"))(100), -1)
+#'
+#' @export
+
+color.bar <- function(lut, min, max=-min, nticks=4, ticks=seq(min, max, len=nticks), title='', label="Effect on Prediction") {
+  scale = (length(lut)-1)/(max-min)
+
+  formatted_ticks = sapply(ticks, format_sigfig)
+
+  plot(c(0,10), c(min,max), type='n', bty='n', xaxt='n', xlab='', yaxt='n', ylab='', main=title)
+  axis(2, at=ticks, labels=formatted_ticks, las=2)
+  for (i in 1:(length(lut)-1)) {
+    y = (i-1)/scale + min
+    rect(0, y, 10, y+1/scale, col=lut[i], border=NA)
+  }
+
+  # Add label if provided
+  if (!is.null(label)) {
+    text(12, (min + max)/2, label, cex=1.2, srt=90, adj=c(.55, 1),xpd = NA)
+  }
+}
+
 #'create_2D_ALEs
 #'
 #'Produces and saves ALEPlots but with better colors and plotted values which
@@ -153,20 +204,38 @@ create_2D_ALEs = function(X,model,pred_fun,K = 40,savedir){
 
     clrs = mk.colors_ale(mtrx = z_mat)$clrs
     brks = mk.colors_ale(mtrx = z_mat)$brks
-    image(x_vec, y_vec, z_mat,
-          xlab = colnames(X)[x_ind],
-          ylab = colnames(X)[y_ind],
-          xlim = range(x_vec),
-          ylim = range(y_vec),
-          col = clrs,
-          breaks = brks)
 
-    contour(x_vec, y_vec, z_mat, add = TRUE, drawlabels = TRUE)
+# combine plots with 1 row and 2 columns
+# Define the layout matrix
+ mat <- matrix(c(1,2,1,2), 2, 2, byrow = TRUE)
 
-    points(X[,x_ind],X[,y_ind])
+    # Specify the layout with relative column widths
+ layout(mat, widths=c(4,1))
 
-    rug(X[,x_ind], side = 1, col = "black")
-    rug(X[,y_ind], side = 2, col = "black")
+ image(x_vec, y_vec, z_mat,
+       xlab = colnames(X)[x_ind],
+       ylab = colnames(X)[y_ind],
+       xlim = range(x_vec),
+       ylim = range(y_vec),
+       col = clrs,
+       breaks = brks,
+       cex.axis = 1.5,  # Increase the size of axis tick labels
+       cex.lab = 1.5   # Increase the size of axis labels
+ )
+
+ contour(x_vec, y_vec, z_mat, add = TRUE, drawlabels = TRUE)
+
+ points(X[,x_ind],X[,y_ind])
+
+ color.bar(clrs, min = min(brks), max = max(brks))
+
+
+ print(paste0(savedir,
+              '/',
+              str_safe(colnames(X)[x_ind]),
+              str_safe(colnames(X)[y_ind]),
+              ".jpeg"))
+
     dev.off()
   })
 }
@@ -181,7 +250,7 @@ create_2D_ALEs = function(X,model,pred_fun,K = 40,savedir){
 #'@param mtrx  whether to set  the middle color to 0
 #'@param logd  whether color scale should be logged
 #'@return a list of the color codes, and their accompanying breaks
-mk.colors_ale <- function(nclrs = 30, clr_st = "RdBu",even = T, mtrx,logd = F) {
+mk.colors_ale <- function(nclrs = 30, clr_st = "Spectral",even = T, mtrx,logd = F) {
 
   # get the limits of the heatmap values
   mx.psvl <- max(mtrx,na.rm = T)
@@ -282,7 +351,7 @@ return(ALE_adj)}
 #' summarizes the information from the findALEinteractions
 #' function into a format compatible with pheatmap.
 #' A variant that measures importance as the difference in AUC when adjusted
-#' for the ALEPlot interaction estimates
+#' for the ALEPlot interaction estimates. THIS FUNCTION IS IN BETA, may or may not work
 #' between
 #' @param ALE_interacts the output of findALEinteracts
 #' @param predictions a vector of predictions for the original AUC
@@ -444,6 +513,7 @@ calc_ALE_varimps_mean <- function(X,X.MODEL,pred.fun,K = 40){
 #'to estimate the effect on accuracy of the prediction by adjusting the model predictions
 #'by the estimated effects, then comparing the differences in AUROC to understand
 #'how much worse the model would be if the variable were factored out.
+#'THIS APPROACH IS IN BETA. May or may not work for you.
 #'@param X the data used to train the model, without predicted var
 #'@param X.MODEL the model
 #'@param pred.fun the prediction function required by ALEPLOT package see details

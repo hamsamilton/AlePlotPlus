@@ -4,7 +4,7 @@
 \alias{mk.colors_ale}
 \title{mk.color_ale}
 \usage{
-mk.colors_ale(nclrs = 30, clr_st = "RdBu", even = T, mtrx, logd = F)
+mk.colors_ale(nclrs = 30, clr_st = "Spectral", even = T, mtrx, logd = F)
 }
 \arguments{
 \item{nclrs}{how many colors}

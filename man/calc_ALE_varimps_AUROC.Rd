@@ -24,4 +24,5 @@ Generates variable importance scores for 1D ALEPlots. This variant is designed
 to estimate the effect on accuracy of the prediction by adjusting the model predictions
 by the estimated effects, then comparing the differences in AUROC to understand
 how much worse the model would be if the variable were factored out.
+THIS APPROACH IS IN BETA. May or may not work for you.
 }
