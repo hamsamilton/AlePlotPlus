@@ -42,7 +42,6 @@ find_ALE_interacts = function(X,X.MODEL,pred.fun,K = 40){
   int_estimates = do.call("rbind",int_estimates)
   return(int_estimates)}
 
-
 #'find_ALE_interact
 #'
 #'Return the average estimated effect of an interaction between preds in an ML
@@ -409,6 +408,7 @@ interacts2_histogram <- function(ALE_interacts,bins = 1000,
 mkALEplots <- function(X,X.MODEL,K = 40,pred.fun){
 
   ALEPLOTS <- lapply(colnames(X),function(nm){
+    print(nm)
     ALEDF <- ALEPlot(X, X.MODEL, pred.fun, nm, K = K, NA.plot = TRUE) %>%
       as.data.frame()
 
