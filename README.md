@@ -2,7 +2,7 @@
 
 Accumulated Local Effect (ALE) Plots are a function decomposition method that allows researchers to interrogate complex machine learning functions by estimating non-linear functions that describe the effects of each predictor on the prediction. 
 
-This package is designed to improve on and extend the ALEPlot package in the following ways:
+This package is designed to extend the ALEPlot package in the following ways:
 
 ## Improvements
 
