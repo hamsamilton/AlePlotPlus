@@ -5,6 +5,8 @@
 \title{calc_ALE_varimps_AUROC}
 \usage{
 calc_ALE_varimps_AUROC(X, X.MODEL, pred.fun, K = 40, predictions, truevals)
+
+calc_ALE_varimps_AUROC(X, X.MODEL, pred.fun, K = 40, predictions, truevals)
 }
 \arguments{
 \item{X}{the data used to train the model, without predicted var}
@@ -20,6 +22,12 @@ calc_ALE_varimps_AUROC(X, X.MODEL, pred.fun, K = 40, predictions, truevals)
 \item{truevals}{a vector of true model predictions}
 }
 \description{
+Generates variable importance scores for 1D ALEPlots. This variant is designed
+to estimate the effect on accuracy of the prediction by adjusting the model predictions
+by the estimated effects, then comparing the differences in AUROC to understand
+how much worse the model would be if the variable were factored out.
+This approach has not been validated yet and so is not made public facing.
+
 Generates variable importance scores for 1D ALEPlots. This variant is designed
 to estimate the effect on accuracy of the prediction by adjusting the model predictions
 by the estimated effects, then comparing the differences in AUROC to understand

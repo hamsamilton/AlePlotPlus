@@ -40,3 +40,4 @@ This function plots a color bar with a given color scale and axis labels.
 color.bar(colorRampPalette(c("light green", "yellow", "orange", "red"))(100), -1)
 
 }
+\keyword{internal}

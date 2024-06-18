@@ -4,8 +4,7 @@ Title: Feat. Imp scores and improved vis for ALEPlot package.
 Version: 1.0.0
 Author: Samuel Hamilton
 Maintainer: Samuel Hamilton <samuelhamilton2024@u.northwestern.edu>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Description: Accumulated Local Effects are model agnostic method for estimating the effect of predictors within machine learning models. This package uses accumulated local effects to estimate the variable importance of predictors to machine learning models. In addition, it provides tools for visualizing the effects of predictors on prediction within predictive models. 
 License: MIT + file LICENSE
 Imports:
 	tidyverse (>= 2.0.0),

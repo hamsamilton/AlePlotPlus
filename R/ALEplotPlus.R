@@ -29,6 +29,7 @@ find_ALE_interacts = function(X,X.MODEL,pred.fun,K = 40){
 
   # gen ALEplot
   int_estimates = lapply(1:ncol(var_combs),function(i){
+    print(i)
     int_estimate = find_ALE_interact(X = X,
                                      X.MODEL = X.MODEL,
                                      pred.fun = pred.fun,
@@ -105,7 +106,14 @@ calc_vals = function(x_points,y_points,x_vec,y_vec,z_vec){
   return(z_values)
 }
 
-# Format a number to three significant figures
+#' Format a number to three significant figures
+#'
+#' This function formats a number to three significant figures.
+#' It handles both small and large numbers appropriately.
+#'
+#' @param x A numeric value to be formatted.
+#' @return A character string representing the formatted number.
+#' @keywords internal
 format_sigfig <- function(x) {
   if (x == 0) {
     return("0")
@@ -130,7 +138,8 @@ format_sigfig <- function(x) {
 #' @param nticks The number of tick marks on the color bar (default is 4).
 #' @param ticks A numeric vector of positions for tick marks on the color bar (default is `seq(min, max, len = nticks)`).
 #' @param title A title for the color bar (default is an empty string).
-#'
+#' @keywords internal
+#' 
 #' @return Invisible NULL. The function is called for its side effect: producing a plot.
 #'
 #' @examples
@@ -162,15 +171,15 @@ color.bar <- function(lut, min, max=-min, nticks=4, ticks=seq(min, max, len=ntic
 #'overall makes it significantly more legible
 #'
 #'@param X a dataframe with the same structure as that used to train the model
-#'@param model a model you are interrogating
-#'@param pred_fun the prediction function used to generate ALEPlot...see doc there
+#'@param X.MODEL a model you are interrogating
+#'@param pred.fun the prediction function used to generate ALEPlot...see doc there
 #'@param K how many subdivisions to estimate the int coef. for, see ALEPlot
 #'@param savedir where to save all the ALEPlots generated
 #'@return saves all combinations of plots
 #'@export
-create_2D_ALEs = function(X,model,pred_fun,K = 40,savedir){
+create_2D_ALEs = function(X,X.MODEL,pred.fun,K = 40,savedir = 'ALE2DPlots'){
 
-  dir.create(savedir)
+  dir.create(savedir,showWarnings = F)
 
   # get all combos
   var_combs = combn(1:ncol(X),m = 2,simplify=T)
@@ -182,10 +191,11 @@ create_2D_ALEs = function(X,model,pred_fun,K = 40,savedir){
     y_ind = var_combs[2,i]
 
     ALEplt = ALEPlot::ALEPlot(X,
-                              X.model=model,
-                              pred.fun=pred_fun,
-                              J = c(x_ind,y_ind),
-                              K = K)
+                              X.model  = X.MODEL,
+                              pred.fun = pred.fun,
+                              J        = c(x_ind,
+                                           y_ind),
+                              K        = K)
 
     x_vec = ALEplt$x.values[[1]]
     y_vec = ALEplt$x.values[[2]]
@@ -206,27 +216,40 @@ create_2D_ALEs = function(X,model,pred_fun,K = 40,savedir){
 
 # combine plots with 1 row and 2 columns
 # Define the layout matrix
- mat <- matrix(c(1,2,1,2), 2, 2, byrow = TRUE)
+ mat <- matrix(c(1,2,1,2), 
+               2,
+               2,
+               byrow = TRUE)
 
     # Specify the layout with relative column widths
- layout(mat, widths=c(4,1))
+ layout(mat, 
+        widths=c(4,1))
 
- image(x_vec, y_vec, z_mat,
-       xlab = colnames(X)[x_ind],
-       ylab = colnames(X)[y_ind],
-       xlim = range(x_vec),
-       ylim = range(y_vec),
-       col = clrs,
-       breaks = brks,
+ image(x_vec,
+       y_vec,
+       z_mat,
+       xlab     = colnames(X)[x_ind],
+       ylab     = colnames(X)[y_ind],
+       xlim     = range(x_vec),
+       ylim     = range(y_vec),
+       col      = clrs,
+       breaks   = brks,
        cex.axis = 1.5,  # Increase the size of axis tick labels
-       cex.lab = 1.5   # Increase the size of axis labels
- )
+       cex.lab  = 1.5)   # Increase the size of axis labels
+ 
 
- contour(x_vec, y_vec, z_mat, add = TRUE, drawlabels = TRUE)
+ contour(x_vec, 
+         y_vec, 
+         z_mat, 
+         add        = TRUE, 
+         drawlabels = TRUE)
 
- points(X[,x_ind],X[,y_ind])
+ points(X[,x_ind],
+        X[,y_ind])
 
- color.bar(clrs, min = min(brks), max = max(brks))
+ color.bar(clrs, 
+           min = min(brks),
+           max = max(brks))
 
 
  print(paste0(savedir,
@@ -249,6 +272,7 @@ create_2D_ALEs = function(X,model,pred_fun,K = 40,savedir){
 #'@param mtrx  whether to set  the middle color to 0
 #'@param logd  whether color scale should be logged
 #'@return a list of the color codes, and their accompanying breaks
+#'@keywords internal
 mk.colors_ale <- function(nclrs = 30, clr_st = "Spectral",even = T, mtrx,logd = F) {
 
   # get the limits of the heatmap values
@@ -259,7 +283,7 @@ mk.colors_ale <- function(nclrs = 30, clr_st = "Spectral",even = T, mtrx,logd = 
 
   # Make the colors
   clrs.4plt <- RColorBrewer::brewer.pal(9,clr_st)
-  clr.rmp <- colorRampPalette(clrs.4plt)
+  clr.rmp   <- colorRampPalette(clrs.4plt)
   clrs.4plt <- clr.rmp(nclrs)
   clrs.4plt <- rev(clrs.4plt)
 
@@ -307,8 +331,8 @@ create_adjacency_matrix <- function(Xvec,Yvec,vals) {
   variables <- unique(c(Xvec, Yvec))
   # Create an empty adjacency matrix
   adj_matrix <- matrix(0,
-                       nrow = length(variables),
-                       ncol = length(variables),
+                       nrow     = length(variables),
+                       ncol     = length(variables),
                        dimnames = list(variables,
                                     variables))
 
@@ -331,7 +355,7 @@ create_adjacency_matrix <- function(Xvec,Yvec,vals) {
 #'
 #' summarizes the information from the findALEinteractions
 #' function into a format compatible with pheatmap
-#' @param ALE_interacts the output of  findALEinteracts
+#' @param ALE_interacts the output of findALEinteracts
 #' @return a matrix compatible with pheatmap
 #' @export
 interacts2_heatmap = function(ALE_interacts){
@@ -340,9 +364,10 @@ interacts2_heatmap = function(ALE_interacts){
     group_by(x,y) %>%
   dplyr::summarize(mn = mean(abs(val)))
 ALE_adj = create_adjacency_matrix(Xvec = ALE_interacts$x,
-                                 Yvec = ALE_interacts$y,
-                                 vals = ALE_interacts$mn)
+                                  Yvec = ALE_interacts$y,
+                                  vals = ALE_interacts$mn)
 diag(ALE_adj) = NA
+
 return(ALE_adj)}
 
 #' interacts2_heatmap_AUROC
@@ -351,12 +376,13 @@ return(ALE_adj)}
 #' function into a format compatible with pheatmap.
 #' A variant that measures importance as the difference in AUC when adjusted
 #' for the ALEPlot interaction estimates. THIS FUNCTION IS IN BETA, may or may not work
+#' Approach is experimental and not validated, not public atm.
 #' between
 #' @param ALE_interacts the output of findALEinteracts
 #' @param predictions a vector of predictions for the original AUC
 #' @param truevals the true values for calculating AUC
 #' @return a matrix compatible with pheatmap
-#' @export
+#' 
 interacts2_heatmap_AUROC = function(ALE_interacts,
                                     predictions,
                                     truevals){
@@ -373,29 +399,6 @@ interacts2_heatmap_AUROC = function(ALE_interacts,
   diag(ALE_adj) = NA
   return(ALE_adj)}
 
-#'interacts2_histogram
-#'
-#' summarizes the information from the findALEinteractions
-#' function into a set of histograms for comparison, just a different
-#' way to do the data.
-#'@param ALE_interacts output of findALEinteractions
-#'@param bins the number of histogram bins
-#'@param ncol how many columns in the facetplot
-#'@export
-interacts2_histogram <- function(ALE_interacts,bins = 1000,
-                                 ncol = 1){
-
-  ALE_interacts$combo = paste0(ALE_interacts$x,
-                               ALE_interacts$y)
-
-  # Create stacked histograms
-  plt <- ggplot(ALE_interacts, aes(x = val, fill = combo)) +
-    geom_histogram(bins = bins) +
-    facet_wrap(~combo,ncol = 1) +
-    theme_minimal()
-  return(plt)
-}
-
 #' ALEPlots are a method to visualize the relationship between individual predictors and an outcome within ordinarily
 #' difficult to interpret non-linear machine learning models. This function produces a list of plots with an aleplot
 #' for each predictor within an ML model.
@@ -407,20 +410,37 @@ interacts2_histogram <- function(ALE_interacts,bins = 1000,
 #' @export
 mkALEplots <- function(X,X.MODEL,K = 40,pred.fun){
 
+  # Apply over columns
   ALEPLOTS <- lapply(colnames(X),function(nm){
-    print(nm)
-    ALEDF <- ALEPlot(X, X.MODEL, pred.fun, nm, K = K, NA.plot = TRUE) %>%
+
+    # Produce the ALEPlot Data
+    ALEDF <- ALEPlot(X, 
+                     X.MODEL, 
+                     pred.fun, 
+                     nm, 
+                     K = K, 
+                     NA.plot = TRUE) %>%
       as.data.frame()
 
-
-    est_effect_df = calc_vals_1D(X[,nm],ALEDF$x.values,ALEDF$f.values) %>%
+    # Estimate the effects at each point in X, given ALE estimates
+    est_effect_df = calc_vals_1D(X[,nm],
+                                 ALEDF$x.values,
+                                 ALEDF$f.values) %>%
       data.frame(x = X[,nm],val = .)
 
+    # Produce the ALE Plot
     ALE_OUT <- ggplot(ALEDF,aes(x = x.values,y = f.values)) +
-      geom_line(size = 1.3) +
-      geom_point(data = est_effect_df,aes(x = x,y = val),color = "red",shape = 4) +
-      labs(x = nm,y = "effect on prediction") + facet.themes()
+      geom_line(linewidth = 1.3) +
+      geom_rug(data = est_effect_df, 
+               aes(x = x, 
+                   y = NULL), 
+               sides = "b", 
+               color = "red") +
+      labs(x = nm,
+           y = "Est. Effect on Prediction") + 
+      facet.themes()
     return(ALE_OUT)})
+  
   return(ALEPLOTS)
 }
 
@@ -513,7 +533,8 @@ calc_ALE_varimps_mean <- function(X,X.MODEL,pred.fun,K = 40){
 #'to estimate the effect on accuracy of the prediction by adjusting the model predictions
 #'by the estimated effects, then comparing the differences in AUROC to understand
 #'how much worse the model would be if the variable were factored out.
-#'THIS APPROACH IS IN BETA. May or may not work for you.
+#'This approach has not been validated yet and so is not made public facing.
+#'
 #'@param X the data used to train the model, without predicted var
 #'@param X.MODEL the model
 #'@param pred.fun the prediction function required by ALEPLOT package see details
@@ -539,8 +560,38 @@ calc_ALE_varimps_AUROC <- function(X,X.MODEL,pred.fun,K = 40,predictions,trueval
   })
   return(deltAUROCs)}
 
-
-
+#'calc_ALE_varimps_ACC
+#'
+#'Generates variable importance scores for 1D ALEPlots. This variant is designed
+#'to estimate the effect on accuracy of the prediction by adjusting the model predictions
+#'by the estimated effects, then comparing the differences in AUROC to understand
+#'how much worse the model would be if the variable were factored out.
+#'THIS APPROACH IS IN BETA. May or may not work for you.
+#'@param X the data used to train the model, without predicted var
+#'@param X.MODEL the model
+#'@param pred.fun the prediction function required by ALEPLOT package see details
+#'@param K the number of bins split to evaluate the ALE Plot see ALEPLOT package
+#'@param predictions vector of model predictions
+#'@param truevals a vector of true model predictions
+calc_ALE_varimps_AUROC <- function(X,X.MODEL,pred.fun,K = 40,predictions,truevals){
+  
+  # calculate variable importance effect matrix
+  imp_score_mat <- calc_ALE_varimp_df(X,X.MODEL,K,pred.fun)
+  
+  # make the adjusted prection matrix by subtracting the matrix from the column
+  adj_imp_score_mat <- predictions- imp_score_mat
+  
+  # calculate the accuracy of the fitted model
+  orig_ACC <-  abs(predictions - truevals)
+  
+  deltAUROCs = sapply(colnames(adj_imp_score_mat),function(predictor){
+    
+    delt = abs(adj_imp_score_mat[,predictor] - truevals)
+    
+    return(delt)
+  })
+  return(deltAUROCs)}
+       
 
 #' a theme for faceted plots which does not include a legend for nice tiling.
 #' @export
@@ -590,15 +641,19 @@ pltROC <- function(predictions,truevals){
                               specificities   =  roc_obj_all$specificities)
 
   rcplt <- pROC::ggroc(roc_obj_all,size = 1.25) +
-    geom_abline(slope = 1,
-                intercept = 1,
+    geom_abline(slope    = 1,
+                intercept= 1,
                 linetype = 'dashed',
-                color = "red") +
+                color    = "red") +
     geom_point(data = roc_points_all,aes(x = specificities,
                                          y = sensitivities)) +
-    annotate("text", x = .25, y = .25, size = 10, label = str_c("AUC = ",
-                                                                round(roc_obj_all$auc[1],
-                                                                      2))) +
+    annotate("text",
+             x     = .25,
+             y     = .25,
+             size  = 10,
+             label = str_c("AUC = ",
+                           round(roc_obj_all$auc[1],
+                                 2))) +
     scale_x_continuous(expand = expansion(mult = c(.05,.1)),
                            trans  = "reverse") +
     xlab("1 - Specificity") + ylab("Sensitivity") +

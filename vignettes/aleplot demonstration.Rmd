@@ -1,0 +1,111 @@
+---
+title: "How to use ALEPlotPlus"
+output: html_document
+date: "2024-06-12"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ALEPlot)
+library(ggplot2)
+library(ALEPlotPlus)
+library(stringr)
+library(dplyr)
+library(pheatmap)
+library(mlbench)
+```
+
+
+This Vignette is designed to demonstate the functionality and limitations of the AlePlotPlus package
+
+First, let's demonstrate the package on a simple, simulated dataset
+```{r cars}
+# set the number of observations
+n = 1000
+
+# These values are going to be the coeffcients for the simulated linear model
+b0 = 0
+b1  = 10
+b2  = 1
+b3  = 10
+b12 = 0
+b13 = 10
+b23 = 0
+
+#simulate values of x1, x2, and x3 from a normal dist
+x1 = rnorm(n, mean = 0, sd = 1)
+x2 = rnorm(n, mean = 0, sd = 1)
+x3 = rnorm(n, mean = 0, sd = 1)
+
+# simulate a small amount of noise to add the model 
+eps = rnorm(n, mean = 0,sd = .001)
+
+#Define linear model we will model using ALEs
+y <- b0 + b1*x1 + b2*x2 + b3*x3 + b12*x1*x2 + b13*x1*x3 + b23*x3*x3 + eps
+
+# Store model information in a dataframe
+df = data.frame(x1 = x1,x2 = x2,x3 = x3, y = y)
+
+# Define the original dataset minus the output variable, which is used to train ALEs
+X = df[,-4]
+
+mdl = randomForest::randomForest(y ~.,data = df)
+```
+
+```{r 1D4,echo = TRUE,results = 'hide',include=TRUE,fig.show='hide'}
+pred.fun <- function(X.model, newdata) {
+        prd_out = predict(X.model, newdata)
+        return(prd_out)}
+
+var_imps = calc_ALE_varimps_mean(X = X,
+                                 X.MODEL = mdl,
+                                 pred.fun = pred.fun,
+                                 K = 40)
+MainEffectALES = mkALEplots(X        = X,
+                            X.MODEL  = mdl,
+                            pred.fun = pred.fun,
+                            K        = 40)
+```
+
+```{r 2}
+var_imps
+MainEffectALES
+```
+
+For these plots, the Y axis tracks the estimated effect of the variable on the prediction when the predictor is at
+the value specified at the X value. The results correctly estimate that x1 and x3 have roughly 10x the effect on the result as x2. The ALEPlots are generally correctly describe the linear relationship between each predictor
+and the outcome. You can observe here that ALEs are generally less accurate at the extreme values as there is less data at those values. This software includes a rugplot in the estimates to assist in identifying areas where the model may be less accurate.
+
+Now let's examine the interactions
+
+
+```{r 3,echo = T,include=T,results = 'hide',fig.show='hide'}
+ALEints = find_ALE_interacts(X,
+                             X.MODEL  = mdl,
+                             pred.fun = pred.fun,
+                             K        = 40)
+create_2D_ALEs(X,
+               X.MODEL = mdl,
+               pred.fun = pred.fun,
+               K        = 40,
+               savedir  = "~/exampleplots")
+```
+
+
+```{r 4}
+clrs = QckRBrwrPllt(name = "OrRd",n = 100)
+ints4heatmap = ALEPlotPlus::interacts2_heatmap(ALEints)
+ints4heatmap
+pheatmap::pheatmap(ints4heatmap,color = clrs)
+
+knitr::include_graphics("~/exampleplots/x1x2.jpeg")
+knitr::include_graphics("~/exampleplots/x1x3.jpeg")
+```
+For each interaction ALEPlot, the color indicates the estimated effect of the interaction between both
+predictors on the prediction at the given value of both predictors. AlePlotPlus correctly identifies the interaction. Within the 2D ALE Plot, you cansee that points with high X1 and X3 values have higher values than either value 
+would suggest in themselves. There is no such clear pattern for the other X1 X2 interaction. The total impact of the interaction is estimated as the average estimated effect of the interaction across all data.
+
+To conclude, this package requires the same inputs as the ALE package 1) A fitted model, 2) The data needed to create
+that model. 3) A function which uses that model to make a prediction. Using the ALE model, variable importance scores
+can be estimated at the model can be visualized as described.
+

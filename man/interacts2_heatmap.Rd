@@ -7,7 +7,7 @@
 interacts2_heatmap(ALE_interacts)
 }
 \arguments{
-\item{ALE_interacts}{the output of  findALEinteracts}
+\item{ALE_interacts}{the output of findALEinteracts}
 }
 \value{
 a matrix compatible with pheatmap

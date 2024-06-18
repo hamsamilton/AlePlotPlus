@@ -1,0 +1,135 @@
+---
+title: "Demonstration of ALE Plots on real data"
+output: html_document
+date: "2024-06-14"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+DatasetDir = "~/ALERealDataVignette/"
+dir.create(DatasetDir)
+libraries <- c("ALEPlotPlus","ALEPlot","dplyr","vip","MASS",'viridis',
+                          "randomForest","mlbench","stringr","ggplot2",'gridExtra')
+lapply(libraries, require, character.only = TRUE)
+```
+
+
+
+
+
+## Demonstrating AlePlotPlus on real data
+
+The Pima Indians Diabetes dataset originates from the **National Institute of Diabetes and Digestive and Kidney Diseases**. The objective of the dataset is to diagnostically predict whether or not a patient has diabetes, based on certain diagnostic measurements included in the dataset.
+
+### Dataset Composition
+
+The datasets consist of several medical predictor (independent) variables and one target (dependent) variable, `Outcome`. Predictor variables include the number of pregnancies the patient has had, their BMI, insulin level, age, and more.
+
+### Variables in the Dataset
+
+Here's a detailed breakdown of the variables in the dataset:
+
+- `Pregnancies`: Number of times pregnant.
+- `Glucose`: Plasma glucose concentration a 2 hours in an oral glucose tolerance test.
+- `BloodPressure`: Diastolic blood pressure (mm Hg).
+- `SkinThickness`: Triceps skin fold thickness (mm).
+- `Insulin`: 2-Hour serum insulin (mu U/ml).
+- `BMI`: Body mass index (weight in kg/(height in m)^2).
+- `DiabetesPedigreeFunction`: Diabetes pedigree function (a function that scores likelihood of diabetes based on family history).
+- `Age`: Age in years.
+- `Outcome`: Class variable (0 if non-diabetic, 1 if diabetic).
+
+```{r 1D4,echo = TRUE,results = 'hide',include=TRUE,fig.show='hide'}
+
+pimi = SetupPimi()
+
+
+var_imps = calc_ALE_varimps_mean(X = pimi$X,
+                                 X.MODEL = pimi$X.MODEL,
+                                 pred.fun = pimi$pred.fun,
+                                 K = 40)
+MainEffectALES = mkALEplots(X        = pimi$X,
+                            X.MODEL  = pimi$X.MODEL,
+                            pred.fun = pimi$pred.fun,
+                            K        = 40)
+```
+
+```{r 2}
+var_imps
+
+```
+ALEs reveal that glucose levels and body mass had the largest effect on diabetes. 
+This reflects 1) The known effect of high body weight on diabetes development
+2) High glucose is a symptom of dysregulated body sugar that is a major symptom of diabetes.
+
+Let's examine the ALE Plots
+```{r aa}
+MainEffectALES[2]
+```
+There seems to be critical inflection points where high levels of glucose start to be associated with diabetes. Past that point the higher one's blood glucose the more likely they are to have diabetes. 
+ 
+ The downward slope at the beginning of the line is a great example of how this approach can hallucinate and when to take caution. The glucose level of 0 is clearly a data error, so the downward relationship until glucose of 70 or so is clearly an extrapolation which doesnt exist
+
+Now let's examine the interactions.
+
+```{r ale,echo = T,include=T,results = 'hide',fig.show='hide'}
+
+  ALEInteractions = find_ALE_interacts(X        = pimi$X,
+                                       X.MODEL  = pimi$X.MODEL,
+                                       pred.fun = pimi$pred.fun,
+                                       K        = 20)
+  
+  InteractionHeatmap = ALEInteractions %>% 
+    ALEPlotPlus::interacts2_heatmap()
+  
+  pheatmap::pheatmap(InteractionHeatmap,
+                     cluster_rows = F,
+                     cluster_cols = F,
+                     inferno(100),
+                     filename = paste0(DatasetDir,
+                                       "/InteractionHeatmap.jpg"))
+```
+```{r}
+knitr::include_graphics("~/ALERealDataVignette/InteractionHeatmap.jpg")
+
+```
+
+The interaction heatmap suggests that the largest interactions are between age and mass and age and glucose. Let's look at those interactions in particular using the interaction heatmaps.
+```{r interactionmap,echo = T,include=T,results = 'hide',fig.show='hide'}
+  
+  # Plot individual ALE interactions
+  create_2D_ALEs(X        = pimi$X, 
+                 X.MODEL  = pimi$X.MODEL,
+                 pred.fun = pimi$pred.fun, 
+                 K        = 20,
+                 savedir  = DatasetDir)
+
+
+```
+
+```{r showplots}
+knitr::include_graphics("~/ALERealDataVignette//massage.jpeg")
+
+```
+The Interaction plot between age and mass show that older patients with high mass are more likely to have
+diabetes than either variable alone would indicate on their own. This is a reflection of the known interaction between age and weight on diabetes as the long term metabolic stress of obesity slowly damages the pancreas' ability to balance blood sugar.
+
+Let's examine the second most significant interaction
+```{r showplot2}
+
+knitr::include_graphics("~/ALERealDataVignette//glucoseage.jpeg")
+```
+These data show that people who are older and have high glucose are more likely to have diabetes than age
+or glucose alone would suggest. This reflects the known risk factor of aging on diabetes development. This is similar to the trend noted above
+
+This is a good moment to note the limitations of this approach. 
+1) These ALE estimates rely on jiggling datapoints within an area to estimate the effects, these are going
+to be less reliable in areas with less data
+
+2) This approach does not return a p-value or any other measure of confidence. It therefore cannot tell you
+if the measured effects are greater than what would be observed by chance.
+
+Nevertheless, we can see this approach correctly identifies known key interactions in the development of diabetes.
+
+
+

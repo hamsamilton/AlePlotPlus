@@ -4,14 +4,14 @@
 \alias{create_2D_ALEs}
 \title{create_2D_ALEs}
 \usage{
-create_2D_ALEs(X, model, pred_fun, K = 40, savedir)
+create_2D_ALEs(X, X.MODEL, pred.fun, K = 40, savedir = "ALE2DPlots")
 }
 \arguments{
 \item{X}{a dataframe with the same structure as that used to train the model}
 
-\item{model}{a model you are interrogating}
+\item{X.MODEL}{a model you are interrogating}
 
-\item{pred_fun}{the prediction function used to generate ALEPlot...see doc there}
+\item{pred.fun}{the prediction function used to generate ALEPlot...see doc there}
 
 \item{K}{how many subdivisions to estimate the int coef. for, see ALEPlot}
 

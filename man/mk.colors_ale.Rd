@@ -23,3 +23,4 @@ a list of the color codes, and their accompanying breaks
 \description{
 makes_colors for the aleplots
 }
+\keyword{internal}
