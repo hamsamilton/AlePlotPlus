@@ -1,20 +1,22 @@
 ---
 title: "Demonstration of ALE Plots on real data"
 output: html_document
+author: 'Sam Hamilton'
 date: "2024-06-14"
+vignette: >
+  %\VignetteIndexEntry{Demonstration of ALE Plots on real data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 DatasetDir = "~/ALERealDataVignette/"
 dir.create(DatasetDir)
-libraries <- c("ALEPlotPlus","ALEPlot","dplyr","vip","MASS",'viridis',
-                          "randomForest","mlbench","stringr","ggplot2",'gridExtra')
+libraries <- c("ALEPlotPlus","dplyr","vip","MASS",'viridis','yaImpute',
+               "randomForest","mlbench","stringr","ggplot2",'gridExtra')
 lapply(libraries, require, character.only = TRUE)
 ```
-
-
-
 
 
 ## Demonstrating AlePlotPlus on real data
@@ -44,14 +46,15 @@ Here's a detailed breakdown of the variables in the dataset:
 pimi = SetupPimi()
 
 
-var_imps = calc_ALE_varimps_mean(X = pimi$X,
-                                 X.MODEL = pimi$X.MODEL,
+var_imps = calc_ALE_varimps_mean(X        = pimi$X,
+                                 X.MODEL  = pimi$X.MODEL,
                                  pred.fun = pimi$pred.fun,
-                                 K = 40)
+                                 K        = 40)
+
 MainEffectALES = mkALEplots(X        = pimi$X,
                             X.MODEL  = pimi$X.MODEL,
                             pred.fun = pimi$pred.fun,
-                            K        = 40)
+                            K        = 20)
 ```
 
 ```{r 2}
@@ -80,14 +83,14 @@ Now let's examine the interactions.
                                        K        = 20)
   
   InteractionHeatmap = ALEInteractions %>% 
-    ALEPlotPlus::interacts2_heatmap()
+    interacts2_heatmap()
   
-  pheatmap::pheatmap(InteractionHeatmap,
-                     cluster_rows = F,
-                     cluster_cols = F,
-                     inferno(100),
-                     filename = paste0(DatasetDir,
-                                       "/InteractionHeatmap.jpg"))
+  pheatmap(InteractionHeatmap,
+           cluster_rows = F,
+           cluster_cols = F,
+           inferno(100),
+           filename = paste0(DatasetDir,
+                            "/InteractionHeatmap.jpg"))
 ```
 ```{r}
 knitr::include_graphics("~/ALERealDataVignette/InteractionHeatmap.jpg")
@@ -111,23 +114,19 @@ The interaction heatmap suggests that the largest interactions are between age a
 knitr::include_graphics("~/ALERealDataVignette//massage.jpeg")
 
 ```
-The Interaction plot between age and mass show that older patients with high mass are more likely to have
-diabetes than either variable alone would indicate on their own. This is a reflection of the known interaction between age and weight on diabetes as the long term metabolic stress of obesity slowly damages the pancreas' ability to balance blood sugar.
+The Interaction plot between age and mass show that older patients with high mass are more likely to have diabetes than either variable alone would indicate on their own. This is a reflection of the known interaction between age and weight on diabetes as the long term metabolic stress of obesity slowly damages the pancreas' ability to balance blood sugar. By plotting the data we can see that the model understands that there is an inflection point with patients above 30 years old and above patients above 30 mass where this interaction is especially meaningful.
 
 Let's examine the second most significant interaction
 ```{r showplot2}
 
 knitr::include_graphics("~/ALERealDataVignette//glucoseage.jpeg")
 ```
-These data show that people who are older and have high glucose are more likely to have diabetes than age
-or glucose alone would suggest. This reflects the known risk factor of aging on diabetes development. This is similar to the trend noted above
+These data show that people who are older and have high glucose are more likely to have diabetes than age or glucose alone would suggest. This reflects the known risk factor of aging on diabetes development. Again, there seems to be a key inflection point at 30 y This is similar to the trend noted above
 
 This is a good moment to note the limitations of this approach. 
-1) These ALE estimates rely on jiggling datapoints within an area to estimate the effects, these are going
-to be less reliable in areas with less data
+1) These ALE estimates rely on jiggling datapoints within an area to estimate the effects, these are goingto be less reliable in areas with less data
 
-2) This approach does not return a p-value or any other measure of confidence. It therefore cannot tell you
-if the measured effects are greater than what would be observed by chance.
+2) This approach does not return a p-value or any other measure of confidence. It therefore cannot tell you if the measured effects are greater than what would be observed by chance.
 
 Nevertheless, we can see this approach correctly identifies known key interactions in the development of diabetes.
 

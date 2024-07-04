@@ -1,7 +1,12 @@
 ---
 title: "How to use ALEPlotPlus"
-output: html_document
+output: rmarkdown::html_document
 date: "2024-06-12"
+author: 'Sam Hamilton'
+vignette: >
+  %\VignetteIndexEntry{How to use ALEPlotPlus}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}

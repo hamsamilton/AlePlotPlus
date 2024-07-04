@@ -7,3 +7,5 @@ testing ALEPackage.R
 *.pdf
 *.html
 Unsorted/
+/doc/
+/Meta/
